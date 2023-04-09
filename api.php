@@ -401,27 +401,27 @@ try {
 
   header('Content-Type: application/json');
   $assoc = $stmt->fetch(PDO::FETCH_ASSOC);
-  echo '{"columns":{';
+  echo '{"columns":[';
   $comma = "";
   foreach ($assoc as $key => $val) {
     echo $comma.'"'.$key.'"';
     $s .= $comma.'"'.$val.'"';
     $comma = ",";
   }
-  echo '}';
+  echo ']';
 
-  echo ', "records":{';
-  echo "{".$s."}";
+  echo ', "records":[';
+  echo "[".$s."]";
   while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    echo ', {';
+    echo ', [';
     $comma = "";
     foreach ($assoc as $key => $val) {
       echo $comma.'"'.$val.'"';
       $comma = ",";
     }
-    echo '}';
+    echo ']';
   }
-  echo '}}';
+  echo ']}';
 } catch (Exception $e) {
   echo $e->getMessage()."\n";
   http_response_code(404);
