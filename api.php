@@ -400,17 +400,28 @@ try {
   //$result = $stmt->fetchAll();
 
   header('Content-Type: application/json');
+  $assoc = $stmt->fetch(PDO::FETCH_ASSOC);
+  echo '{"columns":{';
   $comma = "";
-  while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    echo $comma.'{';
-    $comma2 = "";
-    foreach ($assoc as $key => $val) {
-      echo $comma2.'"'.$val.'"';
-      $comma2 = ",";
-    }
-    echo '}';
+  foreach ($assoc as $key => $val) {
+    echo $comma.'"'.$key.'"';
+    $s .= $comma.'"'.$val.'"';
     $comma = ",";
   }
+  echo '}';
+
+  echo ', "records":{';
+  echo "{".$s."}";
+  while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    echo ', {';
+    $comma = "";
+    foreach ($assoc as $key => $val) {
+      echo $comma.'"'.$val.'"';
+      $comma = ",";
+    }
+    echo '}';
+  }
+  echo '}}';
 } catch (Exception $e) {
   echo $e->getMessage()."\n";
   http_response_code(404);
