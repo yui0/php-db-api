@@ -27,10 +27,16 @@ http://localhost:8080/api.php/records/posts/1
 ```
 HOST=http://localhost:8080
 
+# Create a table
 curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "name":"text", "email":"text", "password":"text"}' $HOST/api.php/users/create
+
+# List
 curl -f $HOST/api.php/users
+
+# Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"yui", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
 
+# Login
 curl -f -X POST -H "Content-Type: application/json" -d '{"user":"yui", "password":"1234"}' $HOST/api.php/login
 ```
 

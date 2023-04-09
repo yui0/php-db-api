@@ -1,7 +1,11 @@
 <?php
 // Copyright © 2023 Yuichiro Nakada
 
+//--- whether to report errors
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+
+//--- defines
+$DATABASE_NAME = dirname(__FILE__).'/data.db';
 
 //--- Authentication
 class PHP_API_AUTH
@@ -84,7 +88,6 @@ class PHP_API_AUTH
 
     $this->settings = compact('verb', 'path', 'user', 'password', 'token', 'authenticator', 'method', 'request', 'post', 'origin', 'time', 'leeway', 'ttl', 'algorithm', 'secret', 'allow_origin');
   }
-
 
   protected function retrieveInput($post)
   {
@@ -288,10 +291,6 @@ if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
 //header('Access-Control-Allow-Origin: *');
 //header('Access-Control-Allow-Credentials: true');
 
-
-// defines
-$DATABASE_NAME = dirname(__FILE__).'/data.db';
-
 // get the HTTP method, path and body of the request
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
@@ -397,47 +396,24 @@ case 'DELETE':
 try {
   $stmt = $pdo->prepare($sql);
   $stmt->execute();
-  $result = $stmt->fetchAll();
+  $stmt->setFetchMode(PDO::FETCH_CLASS, 'stdClass');
+  //$result = $stmt->fetchAll();
+
+  header('Content-Type: application/json');
+  $comma = "";
+  while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    echo $comma.'{';
+    $comma2 = "";
+    foreach ($assoc as $key => $val) {
+      echo $comma2.'"'.$val.'"';
+      $comma2 = ",";
+    }
+    echo '}';
+    $comma = ",";
+  }
 } catch (Exception $e) {
   echo $e->getMessage()."\n";
   http_response_code(404);
   die();
 }
-
-// die if SQL statement failed
-/*if (!$result) {
-  http_response_code(404);
-  die();
-} else {
-  header('Content-Type: application/json');
-  echo json_encode($result);
-  die();
-}*/
-		/*if ($result = $this->db->query($sql,$params)) {
-			echo '"columns":';
-			$keys = array_keys($fields[$table]);
-			echo json_encode($keys);
-			$keys = array_flip($keys);
-			echo ',"records":[';
-			$first_row = true;
-			while ($row = $this->fetchRow($result,$fields[$table])) {
-				if ($first_row) $first_row = false;
-				else echo ',';
-				if (isset($collect[$table])) {
-					foreach (array_keys($collect[$table]) as $field) {
-						$collect[$table][$field][] = $row[$keys[$field]];
-					}
-				}
-				echo json_encode($row);
-			}
-			$this->db->close($result);
-			echo ']';
-			if ($count) echo ',';
-		}
-		if ($count) echo '"results":'.$count;
-		echo '}';*/
-
-  header('Content-Type: application/json');
-  echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR | JSON_INVALID_UTF8_IGNORE);
-  die();
 ?>
