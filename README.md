@@ -33,6 +33,9 @@ curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary k
 # List
 curl -f $HOST/api.php/users
 
+# Get
+curl -f $HOST/api.php/users/1
+
 # Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"yui", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
 

@@ -303,7 +303,7 @@ try {
   $pdo = new PDO('sqlite:'.$DATABASE_NAME);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // WARNING | EXCEPTION | SILENT
-  $pdo->query("CREATE TABLE IF NOT EXISTS users ( 
+  $pdo->query("CREATE TABLE IF NOT EXISTS users (
     id           INTEGER         PRIMARY KEY AUTOINCREMENT,
     name         TEXT,
     email        TEXT,
@@ -314,19 +314,20 @@ try {
   die();
 }
 
-// compare le premier element de notre tableau de requete contre une regexp 
+// get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-// id est le deuxième élément du tableau (+0 en fait un int)
-//$id = array_shift($request)+0;
+// get id or command
 $cmd = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
 switch ($cmd) {
 case 'create':
   $id = 0;
   break;
 default:
-  $cmd = NULL;
   $id = $cmd+0;
+  $cmd = NULL;
 }
+//parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
+//$query['filter']
 
 $columns;
 $values;
