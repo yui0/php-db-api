@@ -2,6 +2,7 @@
 // Copyright © 2023 Yuichiro Nakada
 
 //--- whether to report errors
+ini_set("display_errors", 1);
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //--- defines
@@ -323,11 +324,37 @@ case 'create':
   $id = 0;
   break;
 default:
-  $id = $cmd+0;
+  $id = (int)$cmd+0;
   $cmd = NULL;
 }
-//parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
-//$query['filter']
+$where = ($id?'id='.$id:'');
+// get filter
+parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
+function makeFilter($l, $c, $r)
+{
+  switch ($c) {
+  /*case 'cs': return array('! LIKE ?',$field,'%'.$this->db->likeEscape($value).'%');
+  case 'sw': return array('! LIKE ?',$field,$this->db->likeEscape($value).'%');
+  case 'ew': return array('! LIKE ?',$field,'%'.$this->db->likeEscape($value));*/
+  case 'eq':
+    return $l."=".$r;
+  /*case 'lt': return array('! < ?',$field,$value);
+  case 'le': return array('! <= ?',$field,$value);
+  case 'ge': return array('! >= ?',$field,$value);
+  case 'gt': return array('! > ?',$field,$value);
+  case 'bt':
+  $v = explode(',',$value);
+  if (count($v)<2) return false;
+  return array('! BETWEEN ? AND ?',$field,$v[0],$v[1]);
+  case 'in': return array('! IN ?',$field,explode(',',$value));
+  case 'is': return array('! IS NULL',$field);*/
+  }
+}
+if (isset($query['filter'])) {
+  $split = explode(",", $query['filter']);
+  $where .= makeFilter($split[0], $split[1], $split[2]);
+  //echo $where;
+}
 
 $columns;
 $values;
@@ -352,7 +379,8 @@ if ($body) {
 switch ($method) {
 case 'GET':
   //$sql = "SELECT * from `$table`".($id?" WHERE id=$id":'');
-  $sql = 'SELECT * from `'.$table.'`'.($id?' WHERE id='.$id:'');
+  //$sql = 'SELECT * from `'.$table.'`'.($id?' WHERE id='.$id:'');
+  $sql = 'SELECT * from `'.$table.'`'.($where?' WHERE '.$where:'');
   break;
 case 'PUT':
   //$sql = "UPDATE `$table` SET ".$set." WHERE id=$id";
@@ -401,8 +429,11 @@ try {
   //$result = $stmt->fetchAll();
 
   header('Content-Type: application/json');
+  header('X-Frame-Options: deny');
+  header('X-Content-Type-Options: nosniff');
   $assoc = $stmt->fetch(PDO::FETCH_ASSOC);
   echo '{"columns":[';
+  $s = "";
   $comma = "";
   foreach ($assoc as $key => $val) {
     echo $comma.'"'.$key.'"';

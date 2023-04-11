@@ -35,6 +35,7 @@ curl -f $HOST/api.php/users
 
 # Get
 curl -f $HOST/api.php/users/1
+curl -f $HOST/api.php/users?filter=password,eq,1234
 
 # Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"yui", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
