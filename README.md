@@ -7,9 +7,22 @@
 
 Single File PHP Script that adds a REST API for SQLite.
 
+## Features
+
+* RESTful
+* Support SQLite
+* Support JWT authentication
+
 ## How to use
 
-Upload "api.php" to your server.
+Upload "api.php" and "config.php" to your server.
+
+And edit "config.php".
+```
+ 'database' => 'data/data.db',
+ 'algorithm' => 'HS512',
+ 'secret' => 'secret key is here'
+```
 
 For local development you may run PHP's built-in web server:
 
@@ -51,4 +64,19 @@ curl -f -X POST -H "Content-Type: application/json" -d '{"user":"yui", "password
 
 * PHP 7.0 or higher with PDO drivers enabled for SQLite 3.16 or higher
 
+## Filters
+
+Filters provide search functionality, on list calls, using the "filter" parameter. You need to specify the column name, a comma, the match type, another comma and the value you want to filter on. These are supported match types:
+
+- "cs": contain string (string contains value)
+- "sw": start with (string starts with value)
+- "ew": end with (string end with value)
+- "eq": equal (string or number matches exactly)
+- "lt": lower than (number is lower than value)
+- "le": lower or equal (number is lower than or equal to value)
+- "ge": greater or equal (number is higher than or equal to value)
+- "gt": greater than (number is higher than value)
+- "bt": between (number is between two comma separated values)
+- "in": in (number or string is in comma separated list of values)
+- "is": is null (field contains "NULL" value)
 

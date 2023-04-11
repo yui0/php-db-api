@@ -2,8 +2,8 @@
 // Copyright © 2023 Yuichiro Nakada
 
 //--- whether to report errors
-//ini_set("display_errors", 1);
-//error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+ini_set("display_errors", 1);
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //--- defines
 $conf = include(__DIR__.'/config.php');
@@ -274,24 +274,15 @@ $auth = new PHP_API_AUTH(array(
   'algorithm'=>$conf['algorithm'],
   'secret'=>$conf['secret'],
   'authenticator'=>function($user, $pass) {
-    //$sql = "select * from users where email=`".$email."` and password=`".$pass."`";
     //if ($user=='user' && $pass=='pass') {
-      $_SESSION['user']=$user;
+      $_SESSION['user'] = $user;
       //echo $user;
     //}
   }
 ));
-if ($auth->executeCommand()) exit(0);
-if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
-//	header('HTTP/1.0 401 Unauthorized');
-//	exit(0);
-}
 
 
 //--- API
-//header('Access-Control-Allow-Origin: *');
-//header('Access-Control-Allow-Credentials: true');
-
 // get the HTTP method, path and body of the request
 $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
@@ -317,6 +308,23 @@ try {
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
+if (in_array($table, $conf['auth_table'], true)) {
+  $auth->authenticator = function($user, $pass) {
+    $stmt = $pdo->prepare("select * from users where email=`".$user."` and password=`".$pass."`");
+    $stmt->execute();
+    if ($stmt['pass']===$pass) {
+    //if ($user=='user' && $pass=='pass') {
+      $_SESSION['user'] = $user;
+      //echo $user;
+    }
+  };
+  if ($auth->executeCommand()) exit(0);
+  if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
+  	header('HTTP/1.0 401 Unauthorized');
+  	exit(0);
+  }
+}
+
 // get id or command
 $cmd = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
 switch ($cmd) {
@@ -328,6 +336,7 @@ default:
   $cmd = NULL;
 }
 $where = ($id?'id='.$id:'');
+
 // get filter
 parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
 function makeFilter($l, $c, $r)
@@ -416,7 +425,7 @@ case 'POST':
   break;
 case 'DELETE':
   //$sql = $pdo->prepare("DELETE `$table` WHERE id=$id");
-  $sql = $pdo->prepare('DELETE `'.$table.'` WHERE id='.$id);
+  $sql = 'DELETE `'.$table.'` WHERE id='.$id;
   break;
 }
 //echo $sql."\n";
