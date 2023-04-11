@@ -3,7 +3,6 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/yui0/php-db-api?style=social)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/yui0/php-db-api)
 ![Lines of code](https://img.shields.io/tokei/lines/github/yui0/php-db-api)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/yui0/php-db-api)](https://github.com/yui0/php-db-api/releases)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
 Single File PHP Script that adds a REST API for SQLite.
@@ -36,6 +35,10 @@ curl -f $HOST/api.php/users
 # Get
 curl -f $HOST/api.php/users/1
 curl -f $HOST/api.php/users?filter=password,eq,1234
+curl -f $HOST/api.php/users?filter=id,lt,2
+curl -f $HOST/api.php/users?filter=id,le,2
+curl -f $HOST/api.php/users?filter=id,gt,2
+curl -f $HOST/api.php/users?filter=id,ge,2
 
 # Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"yui", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users

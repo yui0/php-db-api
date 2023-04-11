@@ -2,11 +2,11 @@
 // Copyright © 2023 Yuichiro Nakada
 
 //--- whether to report errors
-ini_set("display_errors", 1);
-error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+//ini_set("display_errors", 1);
+//error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //--- defines
-$DATABASE_NAME = dirname(__FILE__).'/data.db';
+$conf = include(__DIR__.'/config.php');
 
 //--- Authentication
 class PHP_API_AUTH
@@ -271,8 +271,8 @@ class PHP_API_AUTH
 
 $auth = new PHP_API_AUTH(array(
   'path'=>'login',
-  //'algorithm'=>'HS512',
-  'secret'=>'secret key is here',
+  'algorithm'=>$conf['algorithm'],
+  'secret'=>$conf['secret'],
   'authenticator'=>function($user, $pass) {
     //$sql = "select * from users where email=`".$email."` and password=`".$pass."`";
     //if ($user=='user' && $pass=='pass') {
@@ -301,7 +301,7 @@ $body = json_decode(file_get_contents('php://input'), true);
 
 // connect to the sqlite database
 try {
-  $pdo = new PDO('sqlite:'.$DATABASE_NAME);
+  $pdo = new PDO('sqlite:'.$conf['database']);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // WARNING | EXCEPTION | SILENT
   $pdo->query("CREATE TABLE IF NOT EXISTS users (
@@ -333,21 +333,21 @@ parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
 function makeFilter($l, $c, $r)
 {
   switch ($c) {
-  /*case 'cs': return array('! LIKE ?',$field,'%'.$this->db->likeEscape($value).'%');
-  case 'sw': return array('! LIKE ?',$field,$this->db->likeEscape($value).'%');
-  case 'ew': return array('! LIKE ?',$field,'%'.$this->db->likeEscape($value));*/
-  case 'eq':
-    return $l."=".$r;
-  /*case 'lt': return array('! < ?',$field,$value);
-  case 'le': return array('! <= ?',$field,$value);
-  case 'ge': return array('! >= ?',$field,$value);
-  case 'gt': return array('! > ?',$field,$value);
+  case 'cs': return $l.' LIKE %'.$r.'%';//FIXME:security
+  case 'sw': return $l.' LIKE '.$r.'%';
+  case 'ew': return $l.' LIKE %'.$r;
+  case 'eq': return $l."=".$r;
+  case 'lt': return $l."<".$r;
+  case 'le': return $l."<=".$r;
+  case 'ge': return $l.">=".$r;
+  case 'gt': return $l.">".$r;
   case 'bt':
-  $v = explode(',',$value);
-  if (count($v)<2) return false;
-  return array('! BETWEEN ? AND ?',$field,$v[0],$v[1]);
-  case 'in': return array('! IN ?',$field,explode(',',$value));
-  case 'is': return array('! IS NULL',$field);*/
+    $v = explode(',', $r);
+    if (count($v)<2) return ''; // err!
+    return $l.' BETWEEN '.$v[0].' AND '.$v[1];
+  case 'in': return $l.' IN '.explode(',', $r);
+  //case 'in': return $l.' IN '.$r;
+  case 'is': return $l.' IS NULL';
   }
 }
 if (isset($query['filter'])) {
@@ -442,10 +442,10 @@ try {
   }
   echo ']';
 
-  echo ', "records":[';
+  echo ',"records":[';
   echo "[".$s."]";
   while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    echo ', [';
+    echo ',[';
     $comma = "";
     foreach ($assoc as $key => $val) {
       echo $comma.'"'.$val.'"';
