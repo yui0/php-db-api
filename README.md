@@ -17,11 +17,12 @@ Single File PHP Script that adds a REST API for SQLite.
 
 Upload "api.php" and "config.php" to your server.
 
-And edit "config.php".
+And edit "config.php" for your environment.
 ```
  'database' => 'data/data.db',
  'algorithm' => 'HS512',
- 'secret' => 'secret key is here'
+ 'secret' => 'secret key is here',
+ 'auth_table' => ['auth'],
 ```
 
 For local development you may run PHP's built-in web server:
@@ -41,6 +42,10 @@ HOST=http://localhost:8080
 
 # Create a table
 curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "name":"text", "email":"text", "password":"text"}' $HOST/api.php/users/create
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "secret":"text", "date":"timestamp NOT NULL default (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME'))"}' $HOST/api.php/need2auth/create
+
+# Add
+curl -f -X POST -H "Content-Type: application/json" -d '{"name":"test", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
 
 # List
 curl -f $HOST/api.php/users
@@ -53,11 +58,14 @@ curl -f $HOST/api.php/users?filter=id,le,2
 curl -f $HOST/api.php/users?filter=id,gt,2
 curl -f $HOST/api.php/users?filter=id,ge,2
 
-# Add
-curl -f -X POST -H "Content-Type: application/json" -d '{"name":"yui", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
-
 # Login
-curl -f -X POST -H "Content-Type: application/json" -d '{"user":"yui", "password":"1234"}' $HOST/api.php/login
+curl -f -X POST -H "Content-Type: application/json" -d '{"user":"test", "password":"1234"}' $HOST/api.php/login
+
+# Update
+curl -f -X PUT -H "Content-Type: application/json" -d '{"name":"ai", "email":"ai@gmail.com", "password":"pass"}' $HOST/api.php/users/1
+
+# Delete
+curl -f -X DELETE $HOST/api.php/users/3
 ```
 
 ## Requirements
@@ -80,3 +88,6 @@ Filters provide search functionality, on list calls, using the "filter" paramete
 - "in": in (number or string is in comma separated list of values)
 - "is": is null (field contains "NULL" value)
 
+## ref
+
+* https://github.com/simplonco/php-rest-sqlite

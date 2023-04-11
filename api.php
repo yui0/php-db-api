@@ -270,7 +270,7 @@ class PHP_API_AUTH
 }
 
 $auth = new PHP_API_AUTH(array(
-  'path'=>'login',
+  'path'=>'login', // URL/login
   'algorithm'=>$conf['algorithm'],
   'secret'=>$conf['secret'],
   'authenticator'=>function($user, $pass) {
@@ -289,6 +289,8 @@ $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 
 // Decode raw body typ aplication/json
 $body = json_decode(file_get_contents('php://input'), true);
+//var_dump($request);
+//var_dump($body);
 
 // connect to the sqlite database
 try {
@@ -425,9 +427,10 @@ case 'POST':
   break;
 case 'DELETE':
   //$sql = $pdo->prepare("DELETE `$table` WHERE id=$id");
-  $sql = 'DELETE `'.$table.'` WHERE id='.$id;
+  $sql = 'DELETE FROM `'.$table.'` WHERE id='.$id;
   break;
 }
+//echo $method."\n";
 //echo $sql."\n";
  
 // excecute SQL statement
@@ -441,30 +444,35 @@ try {
   header('X-Frame-Options: deny');
   header('X-Content-Type-Options: nosniff');
   $assoc = $stmt->fetch(PDO::FETCH_ASSOC);
-  echo '{"columns":[';
-  $s = "";
-  $comma = "";
-  foreach ($assoc as $key => $val) {
-    echo $comma.'"'.$key.'"';
-    $s .= $comma.'"'.$val.'"';
-    $comma = ",";
-  }
-  echo ']';
-
-  echo ',"records":[';
-  echo "[".$s."]";
-  while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    echo ',[';
+  if ($assoc) {
+    echo '{"columns":[';
+    $s = "";
     $comma = "";
     foreach ($assoc as $key => $val) {
-      echo $comma.'"'.$val.'"';
+      echo $comma.'"'.$key.'"';
+      $s .= $comma.'"'.$val.'"';
       $comma = ",";
     }
     echo ']';
+
+    echo ',"records":[';
+    echo "[".$s."]";
+    while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      echo ',[';
+      $comma = "";
+      foreach ($assoc as $key => $val) {
+        echo $comma.'"'.$val.'"';
+        $comma = ",";
+      }
+      echo ']';
+    }
+    echo ']}';
+  } else { // nothing to return
+    http_response_code(200);
   }
-  echo ']}';
 } catch (Exception $e) {
-  echo $e->getMessage()."\n";
+  //echo "SQL:".$sql."\n";
+  //echo $e->getMessage()."\n";
   http_response_code(404);
   die();
 }
