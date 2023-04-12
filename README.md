@@ -9,6 +9,7 @@ Single File PHP Script that adds a REST API for SQLite.
 
 ## Features
 
+* Very little code, easy to adapt and maintain
 * RESTful
 * Support SQLite
 * Support JWT authentication
@@ -42,7 +43,7 @@ HOST=http://localhost:8080
 
 # Create a table
 curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "name":"text", "email":"text", "password":"text"}' $HOST/api.php/users/create
-curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "secret":"text", "date":"timestamp NOT NULL default (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME'))"}' $HOST/api.php/need2auth/create
+curl -f -X POST -H "Content-Type: application/json" -d "{\"id\":\"integer primary key autoincrement\", \"secret\":\"text\", \"date\":\"timestamp NOT NULL default (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME'))\"}" $HOST/api.php/need2auth/create
 
 # Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"test", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
@@ -52,6 +53,7 @@ curl -f $HOST/api.php/users
 
 # Get
 curl -f $HOST/api.php/users/1
+curl -f $HOST/api.php/users?filter=name,eq,ai
 curl -f $HOST/api.php/users?filter=password,eq,1234
 curl -f $HOST/api.php/users?filter=id,lt,2
 curl -f $HOST/api.php/users?filter=id,le,2
@@ -59,7 +61,7 @@ curl -f $HOST/api.php/users?filter=id,gt,2
 curl -f $HOST/api.php/users?filter=id,ge,2
 
 # Login
-curl -f -X POST -H "Content-Type: application/json" -d '{"user":"test", "password":"1234"}' $HOST/api.php/login
+curl -f -X POST -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
 
 # Update
 curl -f -X PUT -H "Content-Type: application/json" -d '{"name":"ai", "email":"ai@gmail.com", "password":"pass"}' $HOST/api.php/users/1

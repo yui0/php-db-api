@@ -5,6 +5,9 @@
 ini_set("display_errors", 1);
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+//--- session
+session_start();
+
 //--- defines
 $conf = include(__DIR__.'/config.php');
 
@@ -269,18 +272,6 @@ class PHP_API_AUTH
   }
 }
 
-$auth = new PHP_API_AUTH(array(
-  'path'=>'login', // URL/login
-  'algorithm'=>$conf['algorithm'],
-  'secret'=>$conf['secret'],
-  'authenticator'=>function($user, $pass) {
-    //if ($user=='user' && $pass=='pass') {
-      $_SESSION['user'] = $user;
-      //echo $user;
-    //}
-  }
-));
-
 
 //--- API
 // get the HTTP method, path and body of the request
@@ -308,18 +299,36 @@ try {
   die();
 }
 
-// get table name
-$table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-if (in_array($table, $conf['auth_table'], true)) {
-  $auth->authenticator = function($user, $pass) {
-    $stmt = $pdo->prepare("select * from users where email=`".$user."` and password=`".$pass."`");
+// authentication
+$auth = new PHP_API_AUTH(array(
+  'path'=>'login', // URL/login
+  'algorithm'=>$conf['algorithm'],
+  'secret'=>$conf['secret'],
+  'authenticator'=>function($user, $pass) use ($pdo) {
+    $_SESSION = [];
+    session_destroy();
+
+    //echo "select * from users where email='".$user."' and password='".$pass."'";
+    $stmt = $pdo->prepare("select * from users where email='".$user."' and password='".$pass."'");
     $stmt->execute();
-    if ($stmt['pass']===$pass) {
+    if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+      // success
+      //session_regenerate_id();
+      session_start();
+
     //if ($user=='user' && $pass=='pass') {
       $_SESSION['user'] = $user;
       //echo $user;
+    } else {
+    	header('HTTP/1.0 401 Unauthorized');
+    	exit(0);
     }
-  };
+  }
+));
+
+// get table name
+$table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
+if (in_array($table, $conf['auth_table'], true)) {
   if ($auth->executeCommand()) exit(0);
   if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
   	header('HTTP/1.0 401 Unauthorized');
@@ -343,11 +352,14 @@ $where = ($id?'id='.$id:'');
 parse_str(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY), $query);
 function makeFilter($l, $c, $r)
 {
+  $v = $r;
+  if (!is_numeric($r)) $v = "'".$r."'";
+
   switch ($c) {
   case 'cs': return $l.' LIKE %'.$r.'%';//FIXME:security
   case 'sw': return $l.' LIKE '.$r.'%';
   case 'ew': return $l.' LIKE %'.$r;
-  case 'eq': return $l."=".$r;
+  case 'eq': return $l."=".$v;
   case 'lt': return $l."<".$r;
   case 'le': return $l."<=".$r;
   case 'ge': return $l.">=".$r;
@@ -362,6 +374,7 @@ function makeFilter($l, $c, $r)
   }
 }
 if (isset($query['filter'])) {
+  //var_dump($query);
   $split = explode(",", $query['filter']);
   $where .= makeFilter($split[0], $split[1], $split[2]);
   //echo $where;
@@ -404,10 +417,10 @@ case 'POST':
     echo implode(", ", $columns)."\n";
     echo implode(", ", $values)."\n";*/
     if ($auth->executeCommand()) exit(0);
-    if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
+    /*if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
     	header('HTTP/1.0 401 Unauthorized');
     	exit(0);
-    }
+    }*/
     die();
   }
 
@@ -471,9 +484,9 @@ try {
     http_response_code(200);
   }
 } catch (Exception $e) {
-  //echo "SQL:".$sql."\n";
-  //echo $e->getMessage()."\n";
-  http_response_code(404);
+  echo "SQL:".$sql."\n";
+  echo $e->getMessage()."\n";
+  //http_response_code(404);
   die();
 }
 ?>
