@@ -60,14 +60,27 @@ curl -f $HOST/api.php/users?filter=id,le,2
 curl -f $HOST/api.php/users?filter=id,gt,2
 curl -f $HOST/api.php/users?filter=id,ge,2
 
-# Login
-curl -f -X POST -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
-
 # Update
 curl -f -X PUT -H "Content-Type: application/json" -d '{"name":"ai", "email":"ai@gmail.com", "password":"pass"}' $HOST/api.php/users/1
 
 # Delete
 curl -f -X DELETE $HOST/api.php/users/3
+```
+
+Authentication
+
+```
+$ curl -f $HOST/api.php/auth
+curl: (22) The requested URL returned error: 401
+
+# Login
+$ curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
+
+JWT=`curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login | sed 's/^.*":"//' | sed 's/"}//'`
+curl -f -i -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}'
+CSRF=`curl -f -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}' | sed 's/"//g'`
+
+curl -f -b /tmp/cookie.txt $HOST/api.php/auth -H "X-XSRF-TOKEN: $CSRF"
 ```
 
 ## Requirements

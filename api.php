@@ -6,7 +6,7 @@ ini_set("display_errors", 1);
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //--- session
-session_start();
+//session_start();
 
 //--- defines
 $conf = include(__DIR__.'/config.php');
@@ -130,6 +130,7 @@ class PHP_API_AUTH
 
   protected function getVerifiedClaims($token,$time,$leeway,$ttl,$algorithm,$secret)
   {
+    //echo $token,$time,$leeway,$ttl,$algorithm,$secret;
     $algorithms = array('HS256'=>'sha256','HS384'=>'sha384','HS512'=>'sha512');
     if (!isset($algorithms[$algorithm])) {
       return false;
@@ -210,6 +211,7 @@ class PHP_API_AUTH
     }
     $get = isset($_GET['csrf'])?$_GET['csrf']:false;
     $header = isset($_SERVER['HTTP_X_XSRF_TOKEN'])?$_SERVER['HTTP_X_XSRF_TOKEN']:false;
+    //echo "g:$get c:$csrf h:$header\n";
     return ($get == $csrf) || ($header == $csrf);
   }
 
@@ -238,6 +240,7 @@ class PHP_API_AUTH
     if ($method==$verb && trim($path,'/')==$request) {
       $input = $this->retrieveInput($post);
       if ($authenticator && isset($input->$user) && isset($input->$password)) {
+        // authenticator
         $authenticator($input->$user,$input->$password);
         if ($no_session) {
           //echo json_encode($this->generateToken($_SESSION,$time,$ttl,$algorithm,$secret));
@@ -249,9 +252,10 @@ class PHP_API_AUTH
           header('X-XSRF-TOKEN: '.$_SESSION['csrf']);
           echo json_encode($_SESSION['csrf']);
         }
-      }
-      elseif ($secret && isset($input->$token/*$_COOKIE['AUTH-TOKEN']*/)) {
+      } else if ($secret && isset($input->$token/*$_COOKIE['AUTH-TOKEN']*/)) {
+        // get CSRF
         $claims = $this->getVerifiedClaims($input->$token/*$_COOKIE['AUTH-TOKEN']*/,$time,$leeway,$ttl,$algorithm,$secret);
+        //var_dump($claims);
         if ($claims) {
           foreach ($claims as $key=>$value) {
             $_SESSION[$key] = $value;
@@ -271,6 +275,10 @@ class PHP_API_AUTH
     return false;
   }
 }
+$auth = new PHP_API_AUTH(array(
+  'algorithm'=>$conf['algorithm'],
+  'secret'=>$conf['secret'],
+));
 
 
 //--- API
@@ -299,39 +307,37 @@ try {
   die();
 }
 
-// authentication
-$auth = new PHP_API_AUTH(array(
-  'path'=>'login', // URL/login
-  'algorithm'=>$conf['algorithm'],
-  'secret'=>$conf['secret'],
-  'authenticator'=>function($user, $pass) use ($pdo) {
-    $_SESSION = [];
-    session_destroy();
+    /*$auth = new PHP_API_AUTH(array(
+      'path'=>'login', // URL/login
+      'algorithm'=>$conf['algorithm'],
+      'secret'=>$conf['secret'],
+      'authenticator'=>function($user, $pass) use ($pdo) {
+        $_SESSION = [];
+        session_destroy();
 
-    //echo "select * from users where email='".$user."' and password='".$pass."'";
-    $stmt = $pdo->prepare("select * from users where email='".$user."' and password='".$pass."'");
-    $stmt->execute();
-    if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-      // success
-      //session_regenerate_id();
-      session_start();
-
-    //if ($user=='user' && $pass=='pass') {
-      $_SESSION['user'] = $user;
-      //echo $user;
-    } else {
-    	header('HTTP/1.0 401 Unauthorized');
-    	exit(0);
-    }
-  }
-));
+        //echo "select * from users where email='".$user."' and password='".$pass."'";
+        $stmt = $pdo->prepare("select * from users where email='".$user."' and password='".$pass."'");
+        $stmt->execute();
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+          // success
+          //session_regenerate_id();
+          session_start();
+          $_SESSION['user'] = $user;
+          //echo $user;
+        } else {
+          header('HTTP/1.0 401 Unauthorized');
+          exit(0);
+        }
+      }
+    ));*/
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-if (in_array($table, $conf['auth_table'], true)) {
+if ($table===""/*POST on "/" gets hijacked*/ || in_array($table, $conf['auth_table'], true)) {
   if ($auth->executeCommand()) exit(0);
   if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
-  	header('HTTP/1.0 401 Unauthorized');
+  	//header('HTTP/1.0 401 Unauthorized');
+  	echo "err at hasValidCsrfToken\n";
   	exit(0);
   }
 }
@@ -413,9 +419,34 @@ case 'PUT':
 case 'POST':
   switch ($table) {
   case 'login':
+    // authentication
     /*echo $table."\n";
     echo implode(", ", $columns)."\n";
     echo implode(", ", $values)."\n";*/
+    $auth = NULL;
+    $auth = new PHP_API_AUTH(array(
+      'path'=>'login', // URL/login
+      'algorithm'=>$conf['algorithm'],
+      'secret'=>$conf['secret'],
+      'authenticator'=>function($user, $pass) use ($pdo) {
+        //$_SESSION = [];
+        //session_destroy();
+
+        //echo "select * from users where email='".$user."' and password='".$pass."'";
+        $stmt = $pdo->prepare("select * from users where email='".$user."' and password='".$pass."'");
+        $stmt->execute();
+        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+          // success
+          //session_regenerate_id();
+          //session_start();
+          $_SESSION['user'] = $user;
+          //echo $user;
+        } else {
+          header('HTTP/1.0 401 Unauthorized');
+          exit(0);
+        }
+      }
+    ));
     if ($auth->executeCommand()) exit(0);
     /*if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
     	header('HTTP/1.0 401 Unauthorized');
