@@ -112,8 +112,8 @@ class PHP_API_AUTH
   {
     $algorithms = array('HS256'=>'sha256','HS384'=>'sha384','HS512'=>'sha512');
     $header = array();
-    $header['typ']='JWT';
-    $header['alg']=$algorithm;
+    $header['typ'] = 'JWT';
+    $header['alg'] = $algorithm;
     $token = array();
     $token[0] = rtrim(strtr(base64_encode(json_encode((object)$header)),'+/','-_'),'=');
     $claims['iat'] = $time;
@@ -307,37 +307,14 @@ try {
   die();
 }
 
-    /*$auth = new PHP_API_AUTH(array(
-      'path'=>'login', // URL/login
-      'algorithm'=>$conf['algorithm'],
-      'secret'=>$conf['secret'],
-      'authenticator'=>function($user, $pass) use ($pdo) {
-        $_SESSION = [];
-        session_destroy();
-
-        //echo "select * from users where email='".$user."' and password='".$pass."'";
-        $stmt = $pdo->prepare("select * from users where email='".$user."' and password='".$pass."'");
-        $stmt->execute();
-        if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-          // success
-          //session_regenerate_id();
-          session_start();
-          $_SESSION['user'] = $user;
-          //echo $user;
-        } else {
-          header('HTTP/1.0 401 Unauthorized');
-          exit(0);
-        }
-      }
-    ));*/
-
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
 if ($table===""/*POST on "/" gets hijacked*/ || in_array($table, $conf['auth_table'], true)) {
   if ($auth->executeCommand()) exit(0);
-  if (/*empty($_SESSION['user']) ||*/ !$auth->hasValidCsrfToken()) {
-  	//header('HTTP/1.0 401 Unauthorized');
-  	echo "err at hasValidCsrfToken\n";
+  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
+  	header('HTTP/1.0 401 Unauthorized');
+  	//echo "USER:".$_SESSION['user']."\n";
+  	//echo "hasValidCsrfToken:".$auth->hasValidCsrfToken()."\n";
   	exit(0);
   }
 }
@@ -420,16 +397,14 @@ case 'POST':
   switch ($table) {
   case 'login':
     // authentication
-    /*echo $table."\n";
-    echo implode(", ", $columns)."\n";
-    echo implode(", ", $values)."\n";*/
     $auth = NULL;
     $auth = new PHP_API_AUTH(array(
       'path'=>'login', // URL/login
       'algorithm'=>$conf['algorithm'],
       'secret'=>$conf['secret'],
       'authenticator'=>function($user, $pass) use ($pdo) {
-        //$_SESSION = [];
+        session_start();
+        $_SESSION = [];
         //session_destroy();
 
         //echo "select * from users where email='".$user."' and password='".$pass."'";
@@ -437,10 +412,8 @@ case 'POST':
         $stmt->execute();
         if ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
           // success
-          //session_regenerate_id();
-          //session_start();
-          $_SESSION['user'] = $user;
-          //echo $user;
+          session_regenerate_id();
+          $_SESSION['user'] = $user; // JWT token's user
         } else {
           header('HTTP/1.0 401 Unauthorized');
           exit(0);
@@ -515,9 +488,9 @@ try {
     http_response_code(200);
   }
 } catch (Exception $e) {
-  echo "SQL:".$sql."\n";
-  echo $e->getMessage()."\n";
-  //http_response_code(404);
+  //echo "SQL:".$sql."\n";
+  //echo $e->getMessage()."\n";
+  http_response_code(404);
   die();
 }
 ?>

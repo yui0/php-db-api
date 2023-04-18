@@ -43,7 +43,6 @@ HOST=http://localhost:8080
 
 # Create a table
 curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "name":"text", "email":"text", "password":"text"}' $HOST/api.php/users/create
-curl -f -X POST -H "Content-Type: application/json" -d "{\"id\":\"integer primary key autoincrement\", \"secret\":\"text\", \"date\":\"timestamp NOT NULL default (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME'))\"}" $HOST/api.php/need2auth/create
 
 # Add
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"test", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
@@ -80,6 +79,8 @@ JWT=`curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '
 curl -f -i -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}'
 CSRF=`curl -f -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}' | sed 's/"//g'`
 
+curl -f -b /tmp/cookie.txt -H "X-XSRF-TOKEN: $CSRF" -X POST -H "Content-Type: application/json" -d "{\"id\":\"integer primary key autoincrement\", \"secret\":\"text\", \"date\":\"timestamp NOT NULL default (DATETIME(CURRENT_TIMESTAMP, 'LOCALTIME'))\"}" $HOST/api.php/auth/create
+curl -f -b /tmp/cookie.txt -H "X-XSRF-TOKEN: $CSRF" -X POST -H "Content-Type: application/json" -d '{"secret":"secret"}' $HOST/api.php/auth
 curl -f -b /tmp/cookie.txt $HOST/api.php/auth -H "X-XSRF-TOKEN: $CSRF"
 ```
 
@@ -106,3 +107,4 @@ Filters provide search functionality, on list calls, using the "filter" paramete
 ## ref
 
 * https://github.com/simplonco/php-rest-sqlite
+* https://jwt.io
