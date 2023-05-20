@@ -23,7 +23,7 @@ And edit "config.php" for your environment.
  'database' => 'data/data.db',
  'algorithm' => 'HS512',
  'secret' => 'secret key is here',
- 'auth_table' => ['auth'],
+ 'auth_table' => ['auth'], // login required
 ```
 
 For local development you may run PHP's built-in web server:
@@ -37,6 +37,8 @@ Test the script by opening the following URL:
 ```
 http://localhost:8080/api.php/records/posts/1
 ```
+
+Using with curl
 
 ```
 HOST=http://localhost:8080
@@ -74,6 +76,7 @@ curl: (22) The requested URL returned error: 401
 
 # Login
 $ curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
+$ curl -v -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -H "Origin: http://localhost:19006" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
 
 JWT=`curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login | sed 's/^.*":"//' | sed 's/"}//'`
 curl -f -i -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}'

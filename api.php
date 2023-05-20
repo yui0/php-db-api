@@ -69,6 +69,13 @@ class PHP_API_AUTH
     }
     if (!$origin) {
       $origin = isset($_SERVER['HTTP_ORIGIN'])?$_SERVER['HTTP_ORIGIN']:'';
+      /*if (array_key_exists('HTTP_ORIGIN', $_SERVER)) {
+        $origin = $_SERVER['HTTP_ORIGIN'];
+      } else if (array_key_exists('HTTP_REFERER', $_SERVER)) {
+        $origin = $_SERVER['HTTP_REFERER'];
+      } else {
+        $origin = $_SERVER['REMOTE_ADDR'];
+      }*/
     }
 
     if (!$time) {
@@ -279,6 +286,7 @@ $auth = new PHP_API_AUTH(array(
   'algorithm'=>$conf['algorithm'],
   'secret'=>$conf['secret'],
 ));
+if ($auth->executeCommand()) exit(0);
 
 
 //--- API
@@ -310,7 +318,7 @@ try {
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
 if ($table===""/*POST on "/" gets hijacked*/ || in_array($table, $conf['auth_table'], true)) {
-  if ($auth->executeCommand()) exit(0);
+  //if ($auth->executeCommand()) exit(0);
   if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
   	header('HTTP/1.0 401 Unauthorized');
   	//echo "USER:".$_SESSION['user']."\n";
@@ -403,7 +411,7 @@ case 'POST':
       'algorithm'=>$conf['algorithm'],
       'secret'=>$conf['secret'],
       'authenticator'=>function($user, $pass) use ($pdo) {
-        session_start();
+        //session_start();
         $_SESSION = [];
         //session_destroy();
 
