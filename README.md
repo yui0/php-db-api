@@ -23,7 +23,10 @@ And edit "config.php" for your environment.
  'database' => 'data/data.db',
  'algorithm' => 'HS512',
  'secret' => 'secret key is here',
- 'auth_table' => ['auth'], // login required
+ 'auth_table' => [ // login required
+   ['table' => 'users', 'method' => 'GET,POST,DELETE'],
+   ['table' => 'auth', 'method' => 'GET,PUT,POST,DELETE'],
+ ],
 ```
 
 For local development you may run PHP's built-in web server:
@@ -38,7 +41,7 @@ Test the script by opening the following URL:
 http://localhost:8080/api.php/records/posts/1
 ```
 
-Using with curl
+Using with curl:
 
 ```
 HOST=http://localhost:8080
@@ -51,6 +54,7 @@ curl -f -X POST -H "Content-Type: application/json" -d '{"name":"test", "email":
 
 # List
 curl -f $HOST/api.php/users
+curl -f -b /tmp/cookie.txt -H "X-XSRF-TOKEN: $CSRF" $HOST/api.php/users
 
 # Get
 curl -f $HOST/api.php/users/1
@@ -68,7 +72,7 @@ curl -f -X PUT -H "Content-Type: application/json" -d '{"name":"ai", "email":"ai
 curl -f -X DELETE $HOST/api.php/users/3
 ```
 
-Authentication
+Authentication:
 
 ```
 $ curl -f $HOST/api.php/auth

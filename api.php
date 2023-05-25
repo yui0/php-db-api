@@ -317,13 +317,14 @@ try {
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-if ($table===""/*POST on "/" gets hijacked*/ || in_array($table, $conf['auth_table'], true)) {
-  //if ($auth->executeCommand()) exit(0);
+$result = array_search($table, array_column($conf['auth_table'], 'table'), true);
+if ($result!==false) $result = strpos($conf['auth_table'][$result]['method'], $method);
+if ($table===""/*POST on "/" gets hijacked*/ || $result!==false) {
   if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
-  	header('HTTP/1.0 401 Unauthorized');
-  	//echo "USER:".$_SESSION['user']."\n";
-  	//echo "hasValidCsrfToken:".$auth->hasValidCsrfToken()."\n";
-  	exit(0);
+    header('HTTP/1.0 401 Unauthorized');
+    //echo "USER:".$_SESSION['user']."\n";
+    //echo "hasValidCsrfToken:".$auth->hasValidCsrfToken()."\n";
+    exit(0);
   }
 }
 
