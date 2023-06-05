@@ -32,7 +32,7 @@ And edit "config.php" for your environment.
 For local development you may run PHP's built-in web server:
 
 ```
-php -S localhost:8080
+php -S localhost:8080 -t . _router.php 
 ```
 
 Test the script by opening the following URL:
@@ -115,3 +115,5 @@ Filters provide search functionality, on list calls, using the "filter" paramete
 
 * https://github.com/simplonco/php-rest-sqlite
 * https://jwt.io
+* https://knooto.info/php-jwt-simple-auth/
+* https://zipcloud.ibsnet.co.jp/

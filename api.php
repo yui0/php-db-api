@@ -18,11 +18,11 @@ class PHP_API_AUTH
   {
     extract($config);
 
-    $verb = isset($verb)?$verb:null;
-    $path = isset($path)?$path:null;
-    $user = isset($user)?$user:null;
-    $password = isset($password)?$password:null;
-    $token = isset($token)?$token:null;
+    $verb = isset($verb)?$verb:'POST';
+    $path = isset($path)?$path:'';
+    $user = isset($user)?$user:'user';
+    $password = isset($password)?$password:'password';
+    $token = isset($token)?$token:'token';
     $authenticator = isset($authenticator)?$authenticator:null;
 
     $method = isset($method)?$method:null;
@@ -39,7 +39,7 @@ class PHP_API_AUTH
     $allow_origin = isset($allow_origin)?$allow_origin:null;
 
     // defaults
-    if (!$verb) {
+    /*if (!$verb) {
       $verb = 'POST';
     }
     if (!$path) {
@@ -53,7 +53,7 @@ class PHP_API_AUTH
     }
     if (!$token) {
       $token = 'token';
-    }
+    }*/
 
     if (!$method) {
       $method = $_SERVER['REQUEST_METHOD'];
@@ -85,7 +85,8 @@ class PHP_API_AUTH
       $leeway = 5;
     }
     if (!$ttl) {
-      $ttl = 30;
+      //$ttl = 30;
+      $ttl = 2147483647; // 68 years
     }
     if (!$algorithm) {
       $algorithm = 'HS256';
@@ -95,7 +96,7 @@ class PHP_API_AUTH
       $allow_origin = '*';
     }
 
-    $request = trim($request,'/');
+    $request = trim($request, '/');
 
     $this->settings = compact('verb', 'path', 'user', 'password', 'token', 'authenticator', 'method', 'request', 'post', 'origin', 'time', 'leeway', 'ttl', 'algorithm', 'secret', 'allow_origin');
   }
@@ -181,6 +182,16 @@ class PHP_API_AUTH
     }
     return $claims;
   }
+  public function hasValidJWT()
+  {
+    $auth = isset($_SERVER['HTTP_X_AUTHORIZATION']) ? $_SERVER['HTTP_X_AUTHORIZATION'] : '';
+    if (preg_match('#\ABearer\s+(.+)\z#', $auth, $m)) { // Bearer xxxx...
+      $jwt = $m[1];
+      extract($this->settings);
+      return $this->getVerifiedClaims($jwt, $time, $leeway, $ttl, $algorithm, $secret);
+    }
+    return false;
+  }
 
   protected function allowOrigin($origin,$allowOrigins)
   {
@@ -199,7 +210,7 @@ class PHP_API_AUTH
   protected function headersCommand()
   {
     $headers = array();
-    $headers[]='Access-Control-Allow-Headers: Content-Type, X-XSRF-TOKEN';
+    $headers[]='Access-Control-Allow-Headers: Content-Type, X-Authorization, X-XSRF-TOKEN';
     $headers[]='Access-Control-Allow-Methods: OPTIONS, GET, PUT, POST, DELETE, PATCH';
     $headers[]='Access-Control-Allow-Credentials: true';
     $headers[]='Access-Control-Max-Age: 1728000';
@@ -259,9 +270,9 @@ class PHP_API_AUTH
           header('X-XSRF-TOKEN: '.$_SESSION['csrf']);
           echo json_encode($_SESSION['csrf']);
         }
-      } else if ($secret && isset($input->$token/*$_COOKIE['AUTH-TOKEN']*/)) {
+      } else if ($secret && isset($input->$token)) {
         // get CSRF
-        $claims = $this->getVerifiedClaims($input->$token/*$_COOKIE['AUTH-TOKEN']*/,$time,$leeway,$ttl,$algorithm,$secret);
+        $claims = $this->getVerifiedClaims($input->$token, $time, $leeway, $ttl, $algorithm, $secret);
         //var_dump($claims);
         if ($claims) {
           foreach ($claims as $key=>$value) {
@@ -283,8 +294,9 @@ class PHP_API_AUTH
   }
 }
 $auth = new PHP_API_AUTH(array(
-  'algorithm'=>$conf['algorithm'],
-  'secret'=>$conf['secret'],
+  'algorithm' => $conf['algorithm'],
+  'secret' => $conf['secret'],
+  //'ttl' => 2147483647, // 68 years
 ));
 if ($auth->executeCommand()) exit(0);
 
@@ -295,6 +307,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 $request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
 
 // Decode raw body typ aplication/json
+/*if (!isset($_SERVER['HTTP_CONTENT_TYPE']) || false === strpos($_SERVER['HTTP_CONTENT_TYPE'], 'application/json')) {
+  exit("Can't read JSON");
+}*/
 $body = json_decode(file_get_contents('php://input'), true);
 //var_dump($request);
 //var_dump($body);
@@ -317,10 +332,10 @@ try {
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-$result = array_search($table, array_column($conf['auth_table'], 'table'), true);
-if ($result!==false) $result = strpos($conf['auth_table'][$result]['method'], $method);
+$result = array_search($table, array_column($conf['auth_table'], 'table'), true); // find the table name
+if ($result!==false) $result = strpos($conf['auth_table'][$result]['method'], $method); // find the method
 if ($table===""/*POST on "/" gets hijacked*/ || $result!==false) {
-  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken()) {
+  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken() || !$auth->hasValidJWT()) {
     header('HTTP/1.0 401 Unauthorized');
     //echo "USER:".$_SESSION['user']."\n";
     //echo "hasValidCsrfToken:".$auth->hasValidCsrfToken()."\n";
