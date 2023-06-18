@@ -332,9 +332,14 @@ try {
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
-$result = array_search($table, array_column($conf['auth_table'], 'table'), true); // find the table name
-if ($result!==false) $result = strpos($conf['auth_table'][$result]['method'], $method); // find the method
-if ($table===""/*POST on "/" gets hijacked*/ || $result!==false) {
+$noauth = array_search($table, array_column($conf['noauth'], 'table'), true); // find the table name
+if ($noauth!==false) $noauth = strpos($conf['noauth'][$noauth]['method'], $method); // find the method
+$result = array_search($table, array_column($conf['auth'], 'table'), true); // find the table name
+if ($result!==false) $result = strpos($conf['auth'][$result]['method'], $method); // find the method
+//var_dump($table);
+//var_dump($result);
+//var_dump($noauth);
+if ($table===""/*POST on "/" gets hijacked*/ || $result!==false || $noauth===false) {
   if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken() || !$auth->hasValidJWT()) {
     header('HTTP/1.0 401 Unauthorized');
     //echo "USER:".$_SESSION['user']."\n";
@@ -360,7 +365,7 @@ case 'vacuum':
   foreach ($result as $column) {
     $a = array();
     foreach ($column as $d) {
-      $a[] = mb_convert_kana($a, "ask");
+      $a[] = trim(mb_convert_kana($d, "ask"));
     }
     $pdo->query('INSERT INTO uptbl VALUES ('.implode(', ', $a).')');
   }

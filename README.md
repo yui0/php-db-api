@@ -25,9 +25,13 @@ And edit "config.php" for your environment.
  'database' => 'data/data.db',
  'algorithm' => 'HS512',
  'secret' => 'secret key is here',
- 'auth_table' => [ // login required
-   ['table' => 'users', 'method' => 'GET,POST,DELETE'],
-   ['table' => 'auth', 'method' => 'GET,PUT,POST,DELETE'],
+ 'noauth' => [ // all table is required login
+   ['table' => 'login', 'method' => 'POST'], // always need
+   ['table' => 'users', 'method' => 'PUT,POST'], // FIXME: POST
+   ['table' => 'population', 'method' => 'GET,PUT,POST,DELETE'],
+ ],
+ 'auth' => [ // access right required
+   ['table' => 'users', 'method' => 'GET,DELETE', 'user' => 'admin'],
  ],
 ```
 
@@ -44,6 +48,40 @@ http://localhost:8080/api.php/records/posts/1
 ```
 
 Using with curl:
+
+```
+HOST=http://localhost:8080
+
+# Create a table
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key", "tp":"integer", "tpm":"integer", "tpf":"integer", "jp":"integer", "jpm":"integer", "jpf":"integer"}' $HOST/api.php/population/create
+
+# Add
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"2000", "tp":"126926", "tpm":"62111", "tpf":"64815", "jp":"125613", "jpm":"61488", "jpf":"64125"}' $HOST/api.php/population
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"2001", "tp":"127316", "tpm":"62265", "tpf":"65051", "jp":"125930", "jpm":"61615", "jpf":"64316"}' $HOST/api.php/population
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"2002", "tp":"127486", "tpm":"62295", "tpf":"65190", "jp":"126053", "jpm":"61629", "jpf":"64424"}' $HOST/api.php/population
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"2003", "tp":"127694", "tpm":"62368", "tpf":"65326", "jp":"126206", "jpm":"61677", "jpf":"64529"}' $HOST/api.php/population
+curl -f -X POST -H "Content-Type: application/json" -d '{"id":"2100", "tp":"127486", "tpm":"62295", "tpf":"65190", "jp":"126053", "jpm":"61629", "jpf":"64424"}' $HOST/api.php/population
+
+# List
+curl -f $HOST/api.php/population
+
+# Get
+curl -f $HOST/api.php/population/2000
+curl -f $HOST/api.php/population?filter=tp,eq,127694
+curl -f $HOST/api.php/population?filter=id,lt,2002
+curl -f $HOST/api.php/population?filter=id,le,2002
+curl -f $HOST/api.php/population?filter=id,gt,2002
+curl -f $HOST/api.php/population?filter=id,ge,2002
+
+# Update
+curl -f -X PUT -H "Content-Type: application/json" -d '{"tp":"100", "tpm":"200"}' $HOST/api.php/population/2100
+
+# Delete
+curl -f -X DELETE $HOST/api.php/population/2100
+
+# Vacuum
+curl -f $HOST/api.php/population/vacuum
+```
 
 ```
 HOST=http://localhost:8080
