@@ -332,18 +332,17 @@ try {
 
 // get table name
 $table = preg_replace('/[^a-z0-9_]+/i', '', array_shift($request));
+
 $noauth = array_search($table, array_column($conf['noauth'], 'table'), true); // find the table name
 if ($noauth!==false) $noauth = strpos($conf['noauth'][$noauth]['method'], $method); // find the method
+
 $result = array_search($table, array_column($conf['auth'], 'table'), true); // find the table name
 if ($result!==false) $result = strpos($conf['auth'][$result]['method'], $method); // find the method
-//var_dump($table);
-//var_dump($result);
-//var_dump($noauth);
+
 if ($table===""/*POST on "/" gets hijacked*/ || $result!==false || $noauth===false) {
-  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken() || !$auth->hasValidJWT()) {
+  $result = $conf['use_jwt'] ? $auth->hasValidJWT() : true;
+  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken() || !$result) {
     header('HTTP/1.0 401 Unauthorized');
-    //echo "USER:".$_SESSION['user']."\n";
-    //echo "hasValidCsrfToken:".$auth->hasValidCsrfToken()."\n";
     exit(0);
   }
 }
