@@ -521,7 +521,8 @@ try {
     }
     echo ']';
 
-    echo ',"records":[';
+    //echo ',"records":[';
+    echo ',"'.$conf['records'].'":[';
     echo "[".$s."]";
     while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
       echo ',[';
