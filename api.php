@@ -511,6 +511,7 @@ try {
   header('X-Content-Type-Options: nosniff');
   $assoc = $stmt->fetch(PDO::FETCH_ASSOC);
   if ($assoc) {
+    if ($conf['output_tbl']) echo '{"'.$table.'":';
     echo '{"columns":[';
     $s = "";
     $comma = "";
@@ -521,8 +522,7 @@ try {
     }
     echo ']';
 
-    //echo ',"records":[';
-    echo ',"'.$conf['records'].'":[';
+    echo ',"records":[';
     echo "[".$s."]";
     while ($assoc = $stmt->fetch(PDO::FETCH_ASSOC)) {
       echo ',[';
@@ -535,6 +535,7 @@ try {
       echo ']';
     }
     echo ']}';
+    if ($conf['output_tbl']) echo '}';
   } else { // nothing to return
     http_response_code(200);
   }

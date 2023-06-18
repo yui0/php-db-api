@@ -6,7 +6,7 @@ return [
  'algorithm' => 'HS512',
  'secret' => 'secret key is here',
  'use_jwt' => false,
- 'records' => 'records',
+ 'output_tbl' => false,
  'noauth' => [ // all table is required login
    ['table' => 'login', 'method' => 'POST'], // always need
    ['table' => 'users', 'method' => 'PUT,POST'], // FIXME: POST
