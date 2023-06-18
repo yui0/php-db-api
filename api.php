@@ -349,6 +349,27 @@ switch ($cmd) {
 case 'create':
   $id = 0;
   break;
+case 'vacuum':
+  $pdo->query('DROP TABLE IF EXISTS uptbl');
+  $pdo->query('CREATE TABLE uptbl AS SELECT * FROM `'.$table.'` WHERE 1=2');
+
+  $stmt = $pdo->prepare('SELECT * from `'.$table.'`');
+  $stmt->execute();
+  $stmt->setFetchMode(PDO::FETCH_CLASS, 'stdClass');
+  $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  foreach ($result as $column) {
+    $a = array();
+    foreach ($column as $d) {
+      $a[] = mb_convert_kana($a, "ask");
+    }
+    $pdo->query('INSERT INTO uptbl VALUES ('.implode(', ', $a).')');
+  }
+
+  $pdo->query('DROP TABLE `'.$table.'`');
+  $pdo->query('ALTER TABLE uptbl RENAME TO `'.$table.'`');
+
+  $pdo->query("VACUUM");
+  exit(0);
 default:
   $id = (int)$cmd+0;
   $cmd = NULL;

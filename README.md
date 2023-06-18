@@ -7,6 +7,8 @@
 
 Single File PHP Script that adds a REST API for SQLite.
 
+Example: https://github.com/yui0/rn-auth-template
+
 ## Features
 
 * Very little code, easy to adapt and maintain
@@ -70,6 +72,9 @@ curl -f -X PUT -H "Content-Type: application/json" -d '{"name":"ai", "email":"ai
 
 # Delete
 curl -f -X DELETE $HOST/api.php/users/3
+
+# Vacuum
+curl -f $HOST/api.php/users/vacuum
 ```
 
 Authentication:
