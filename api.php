@@ -527,7 +527,8 @@ try {
       echo ',[';
       $comma = "";
       foreach ($assoc as $key => $val) {
-        echo $comma.'"'.$val.'"';
+        //echo $comma.'"'.$val.'"';
+        echo $comma.json_encode($val, JSON_UNESCAPED_UNICODE|JSON_HEX_QUOT|JSON_HEX_TAG|JSON_HEX_APOS);
         $comma = ",";
       }
       echo ']';
