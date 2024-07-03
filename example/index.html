@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      var axios_url = 'https://.../api.php';
+      var M = {};
+      M.NOINFO = '情報なし';		// 情報なし
+    </script>
+    <meta charset="utf-8">
+    <meta name="robots" content="none">
+    <link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
+    <link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+    <link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <title>📝 StockMgr</title>
+    <link rel="stylesheet" href="//unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="//unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,300italic,300,500,400italic,500italic,700,700italic" rel="stylesheet" type="text/css">
+    <style>
+      .pink {
+        background-color: #FFF5EE;
+      }
+      .red {
+        background: #FF512F;
+        background: -webkit-linear-gradient(to right, #F09819, #FF512F);
+        background: linear-gradient(to right, #F09819, #FF512F);
+      }
+      .yellow {
+        background: #FFEEEE;
+        background: -webkit-linear-gradient(to right, #DDEFBB, #FFEEEE);
+        background: linear-gradient(to right, #DDEFBB, #FFEEEE);
+      }
+      ons-card {
+        cursor: pointer;
+        color: #333;
+      }
+      .card__title,
+      .card--material__title {
+        font-size: 20px;
+      }
+      .pull-hook-content {
+        color: #666;
+        transition: transform .25s ease-in-out;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <ons-navigator id="appNavigator" page="main.html" swipeable="" swipe-target-width="80px"></ons-navigator>
+    <template id="main.html">
+      <ons-page>
+        <ons-splitter id="appSplitter">
+          <ons-splitter-content>
+            <ons-page id="tabbar-page">
+              <ons-toolbar>
+                <div class="center">HOME</div>
+                <div class="right">
+                  <ons-toolbar-button onclick="location.reload()">
+                    <ons-icon icon="ion-ios-refresh"></ons-icon>
+                  </ons-toolbar-button>
+                  <ons-toolbar-button onclick="Auth.logout()">
+                    <ons-icon icon="fa-sign-out"></ons-icon>
+                  </ons-toolbar-button>
+                </div>
+              </ons-toolbar>
+              <ons-tabbar id="appTabbar" position="auto">
+                <ons-tab label="HOME" icon="ion-ios-home" page="home.html" active=""></ons-tab>
+                <ons-tab label="管理" icon="ion-ios-settings" page="manage.html"></ons-tab>
+                <!--ons-tab(label='#{HISTORY}', icon='fa-pencil-square-o', page='history.html')-->
+              </ons-tabbar>
+            </ons-page>
+          </ons-splitter-content>
+        </ons-splitter>
+      </ons-page>
+    </template>
+    <template id="sidemenu.html">
+      <ons-page>
+        <div class="profile-pic"><img src="apple-touch-icon-50.png" onclick="msg('User', /*getCookie('user')*/user[0].name)"></div>
+        <ons-list-title>Access</ons-list-title>
+        <ons-list>
+          <ons-list-item onclick="app.loadView(0)">
+            <div class="left">
+              <ons-icon fixed-width="" icon="ion-ios-home, material:md-home" class="list-item__icon"></ons-icon>
+            </div>
+            <div class="center">HOME</div>
+            <div class="right">
+              <ons-icon icon="fa-link"></ons-icon>
+            </div>
+          </ons-list-item>
+          <ons-list-item onclick="app.loadView(1)">
+            <div class="left">
+              <ons-icon fixed-width="" icon="ion-ios-settings, material:md-edit" class="list-item__icon"></ons-icon>
+            </div>
+            <div class="center">管理</div>
+            <div class="right">
+              <ons-icon icon="fa-link"></ons-icon>
+            </div>
+          </ons-list-item>
+          <ons-list-item onclick="Auth.logout()">
+            <div class="left">
+              <ons-icon fixed-width="" icon="fa-sign-out" class="list-item__icon"></ons-icon>
+            </div>
+            <div class="center">Sign Out</div>
+            <div class="right">
+              <ons-icon icon="fa-link"></ons-icon>
+            </div>
+          </ons-list-item>
+        </ons-list>
+        <style>
+          .profile-pic {
+            width: 200px;
+            background-color: #fff;
+            margin: 20px auto 10px;
+            border: 1px solid #999;
+            border-radius: 4px;
+          }
+          .profile-pic > img {
+            display: block;
+            max-width: 100%;
+          }
+          ons-list-item {
+            color: #444;
+          }
+          
+        </style>
+      </ons-page>
+    </template>
+    <template id="home.html">
+      <ons-page id="home-page">
+        <ons-card onclick="app.pushPage('test.html', {'id':'1'})">
+          <div class="title">
+            <ons-icon icon="ion-ios-paw"></ons-icon> Title
+          </div>
+          <div class="content">description</div>
+        </ons-card>
+      </ons-page>
+    </template>
+    <template id="manage.html">
+      <ons-page id="manage-page">
+        <ons-card onclick="app.pushPage('test.html', {'id':'1'})">
+          <div class="title">
+            <ons-icon icon="ion-ios-paw"></ons-icon> Title
+          </div>
+          <div class="content">description</div>
+        </ons-card>
+      </ons-page>
+    </template>
+    <script src="//unpkg.com/onsenui@2.11.2/js/onsenui.min.js"></script>
+    <script src="//unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
+    <script src="lib/php_crud_api_transform.js"></script>
+    <script src="lib/moment.min.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

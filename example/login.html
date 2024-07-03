@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      var axios_url = 'https://.../api.php';
+      var M = {};
+      M.NOINFO = '情報なし';		// 情報なし
+    </script>
+    <meta charset="utf-8">
+    <meta name="robots" content="none">
+    <link rel="apple-touch-icon-precomposed" href="apple-touch-icon.png">
+    <link rel="shortcut icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+    <link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+    <title>📝 StockMgr</title>
+    <link rel="stylesheet" href="//unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="//unpkg.com/onsenui/css/onsen-css-components.css">
+    <link href="//fonts.googleapis.com/css?family=Roboto:400,300italic,300,500,400italic,500italic,700,700italic" rel="stylesheet" type="text/css">
+    <script src="//unpkg.com/onsenui@2.11.2/js/onsenui.js"></script>
+    <script src="//unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
+    <script src="lib/php_crud_api_transform.js"></script>
+    <script>
+      ons.platform.select('ios');
+      var api = axios.create({
+        baseURL: 'https://.../StockMgr',
+        withCredentials: true
+      });
+      api.interceptors.response.use(function (response) {
+        if (response.headers['x-xsrf-token']) {
+          document.cookie = 'XSRF-TOKEN=' + response.headers['x-xsrf-token'] + '; max-age=10800; path=/';
+        }
+        return response;
+      });
+      var Auth = {
+        loggedIn: false,
+        login: function(name, pass) {
+          // Get JWT
+          api.post('api.php/login', {user:name, password:pass}).then(function (response) {
+            document.cookie = 'user=' + name;
+            document.cookie = 'JWT=' + response.data.token + '; max-age=10800; path=/';
+            //console.log(response.data);
+            api.post('api.php/', {token:response.data.token}).then(function (response) {
+              this.loggedIn = true;
+              document.cookie = 'AUTH-TOKEN=' + response.data + '; max-age=10800; path=/';
+              window.localStorage.setItem('AUTH-TOKEN', response.data);
+              location = 'index.html';
+            });
+          }).catch(function (error) {
+            ons.notification.alert({
+              message: '認証できませんでした。<br>もう一度入力してください。<br>'+error,
+              title: '認証失敗！'
+            });
+          });
+        },
+        /*logout: function() {
+          this.loggedIn = false;
+          location.reload();
+        }*/
+      };
+      /*function getCookie(name)
+      {
+        if (!name || !document.cookie) return;
+        var cookies = document.cookie.split("; ");
+        for (var i=0; i<cookies.length; i++) {
+          var str = cookies[i].split("=");
+          if (str[0] != name) continue;
+          return unescape(str[1]);
+        }
+        return;
+      }
+      var token = getCookie('AUTH-TOKEN');
+      if (!token) token = window.localStorage.getItem('AUTH-TOKEN');
+      if (token) location = 'index.html';*/
+    </script>
+  </head>
+  <body>
+    <ons-navigator id="appNavigator" swipeable="" swipe-target-width="80px">
+      <ons-page id="forms-page">
+        <ons-toolbar>
+          <div class="center"></div>
+        </ons-toolbar>
+        <ons-list>
+          <ons-list-header>Authentication</ons-list-header>
+          <ons-list-item class="input-items">
+            <div class="left">
+              <ons-icon icon="md-face" class="list-item__icon"></ons-icon>
+            </div>
+            <label class="center">
+              <ons-input id="username" float="" maxlength="70" placeholder="Name"></ons-input>
+            </label>
+          </ons-list-item>
+          <ons-list-item class="input-items">
+            <div class="left">
+              <ons-icon icon="md-key" class="list-item__icon"></ons-icon>
+            </div>
+            <label class="center">
+              <ons-input id="password" float="" maxlength="20" placeholder="Password" type="password"></ons-input>
+            </label>
+          </ons-list-item>
+          <section style="margin: 16px">
+            <ons-button onclick='Auth.login(document.getElementById("username").value,document.getElementById("password").value)' class="button-margin">Sign In</ons-button>
+          </section>
+        </ons-list>
+      </ons-page>
+    </ons-navigator>
+  </body>
+</html>

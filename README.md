@@ -1,22 +1,22 @@
-# PHP-DB-API
+# PHP-DB-API 🐾
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/yui0/php-db-api?style=social)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/yui0/php-db-api)
 ![Lines of code](https://img.shields.io/tokei/lines/github/yui0/php-db-api)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 
-Single File PHP Script that adds a REST API for SQLite.
+🐱 Single File PHP Script that adds a REST API for SQLite.
 
 Example: https://github.com/yui0/rn-auth-template
 
-## Features
+## 💎 Features
 
 * Very little code, easy to adapt and maintain
 * RESTful
 * Support SQLite
 * Support JWT authentication
 
-## How to use
+## 🖥 How to use
 
 Upload "api.php" and "config.php" to your server.
 
@@ -26,6 +26,7 @@ And edit "config.php" for your environment.
  'algorithm' => 'HS512',
  'secret' => 'secret key is here',
  'use_jwt' => false,
+ 'output_tbl' => false, // output table name for json
  'noauth' => [ // all table is required login
    ['table' => 'login', 'method' => 'POST'], // always need
    ['table' => 'users', 'method' => 'PUT,POST'], // FIXME: POST
@@ -135,11 +136,11 @@ curl -f -b /tmp/cookie.txt -H "X-XSRF-TOKEN: $CSRF" -X POST -H "Content-Type: ap
 curl -f -b /tmp/cookie.txt $HOST/api.php/auth -H "X-XSRF-TOKEN: $CSRF"
 ```
 
-## Requirements
+## 🔧 Requirements
 
 * PHP 7.0 or higher with PDO drivers enabled for SQLite 3.16 or higher
 
-## Filters
+## 🔎 Filters
 
 Filters provide search functionality, on list calls, using the "filter" parameter. You need to specify the column name, a comma, the match type, another comma and the value you want to filter on. These are supported match types:
 
@@ -155,7 +156,7 @@ Filters provide search functionality, on list calls, using the "filter" paramete
 - "in": in (number or string is in comma separated list of values)
 - "is": is null (field contains "NULL" value)
 
-## ref
+## 📖 References
 
 * https://github.com/simplonco/php-rest-sqlite
 * https://jwt.io
