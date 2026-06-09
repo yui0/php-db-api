@@ -7,7 +7,7 @@ return [
  'secret' => 'secret key is here',
  'use_jwt' => false,
  'output_tbl' => false, // output table name for json
- 'noauth' => [ // all table is required login
+ 'noauth' => [
    ['table' => 'login', 'method' => 'POST'], // always need
    ['table' => 'users', 'method' => 'PUT,POST'], // FIXME: POST
    ['table' => 'population', 'method' => 'GET,PUT,POST,DELETE'],

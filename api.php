@@ -315,6 +315,11 @@ $body = json_decode(file_get_contents('php://input'), true);
 //var_dump($body);
 
 // connect to the sqlite database
+$dir = dirname($conf['database']);
+if (!is_dir($dir)) {
+  mkdir($dir, 0777, true);
+  chmod($dir, 0777);
+}
 try {
   $pdo = new PDO('sqlite:'.$conf['database']);
   $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);

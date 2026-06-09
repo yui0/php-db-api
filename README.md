@@ -120,12 +120,12 @@ curl -f $HOST/api.php/users/vacuum
 Authentication:
 
 ```
-$ curl -f $HOST/api.php/auth
+curl -f $HOST/api.php/auth
 curl: (22) The requested URL returned error: 401
 
 # Login
-$ curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
-$ curl -v -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -H "Origin: http://localhost:19006" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
+curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
+curl -v -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -H "Origin: http://localhost:19006" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login
 
 JWT=`curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login | sed 's/^.*":"//' | sed 's/"}//'`
 curl -f -i -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}'
