@@ -88,14 +88,19 @@ curl -f $HOST/api.php/population/vacuum
 ```
 HOST=http://localhost:8080
 
-# Create a table
+# Create the user table
 curl -f -X POST -H "Content-Type: application/json" -d '{"id":"integer primary key autoincrement", "name":"text", "email":"text", "password":"text"}' $HOST/api.php/users/create
 
-# Add
+# Add the user
 curl -f -X POST -H "Content-Type: application/json" -d '{"name":"test", "email":"test@gmail.com", "password":"1234"}' $HOST/api.php/users
 
-# List
+# List the users
 curl -f $HOST/api.php/users
+curl: (22) The requested URL returned error: 401
+
+JWT=`curl -f -X POST -c /tmp/cookie.txt -H "Content-Type: application/json" -d '{"user":"test@gmail.com", "password":"1234"}' $HOST/api.php/login | sed 's/^.*":"//' | sed 's/"}//'`
+curl -f -i -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}'
+CSRF=`curl -f -X POST -c /tmp/cookie.txt $HOST/api.php/ -H "Content-Type: application/json" -d '{"token":"'$JWT'"}' | sed 's/"//g'`
 curl -f -b /tmp/cookie.txt -H "X-XSRF-TOKEN: $CSRF" $HOST/api.php/users
 
 # Get

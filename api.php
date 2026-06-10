@@ -345,8 +345,8 @@ $result = array_search($table, array_column($conf['auth'], 'table'), true); // f
 if ($result!==false) $result = strpos($conf['auth'][$result]['method'], $method); // find the method
 
 if ($table===""/*POST on "/" gets hijacked*/ || $result!==false || $noauth===false) {
-  $result = $conf['use_jwt'] ? $auth->hasValidJWT() : true;
-  if (empty($_SESSION['user']) || !$auth->hasValidCsrfToken() || !$result) {
+  $jwtValid = $conf['use_jwt'] && $auth->hasValidJWT();
+  if (!$jwtValid && (empty($_SESSION['user']) || !$auth->hasValidCsrfToken())) {
     header('HTTP/1.0 401 Unauthorized');
     exit(0);
   }
